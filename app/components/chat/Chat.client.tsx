@@ -86,6 +86,15 @@ export function Chat() {
   );
 }
 
+const UpgradeMessage = () => (
+  <div>
+    <p>You have exceeded your token limit.</p>
+    <a className="underline" href="https://app.orbiter.host/billing">
+      Buy more token credits
+    </a>
+  </div>
+);
+
 const processSampledMessages = createSampler(
   (options: {
     messages: Message[];
@@ -189,9 +198,14 @@ export const ChatImpl = memo(
           action: 'request',
           error: e.message,
         });
-        toast.error(
-          'There was an error processing your request: ' + (e.message ? e.message : 'No details were returned'),
-        );
+
+        if (e.message === 'Monthly token limit exceeded') {
+          toast.error(<UpgradeMessage />);
+        } else {
+          toast.error(
+            'There was an error processing your request: ' + (e.message ? e.message : 'No details were returned'),
+          );
+        }
       },
       onFinish: (message, response) => {
         const usage = response.usage;

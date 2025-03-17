@@ -3,6 +3,8 @@ import { IconButton } from '~/components/ui/IconButton';
 import type { ProviderInfo } from '~/types/model';
 import Cookies from 'js-cookie';
 import { getAccessToken, getUserLocal } from '~/utils/auth';
+import type { Session } from '@supabase/supabase-js';
+import { ControlPanel } from '~/components/@settings';
 
 interface APIKeyManagerProps {
   provider: ProviderInfo;
@@ -45,6 +47,8 @@ export const APIKeyManager: React.FC<APIKeyManagerProps> = ({ provider, apiKey, 
   const [isEditing, setIsEditing] = useState(false);
   const [tempKey, setTempKey] = useState(apiKey);
   const [isEnvKeySet, setIsEnvKeySet] = useState(false);
+  const [session, setSession] = useState<Session | null>(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Reset states and load saved key when provider changes
   useEffect(() => {
@@ -70,6 +74,7 @@ export const APIKeyManager: React.FC<APIKeyManagerProps> = ({ provider, apiKey, 
       let isSet = (data as { isSet: boolean }).isSet;
 
       const session = await getUserLocal();
+      setSession(session);
 
       const orgId = session?.user.user_metadata.orgId;
 
@@ -133,12 +138,26 @@ export const APIKeyManager: React.FC<APIKeyManagerProps> = ({ provider, apiKey, 
               ) : isEnvKeySet ? (
                 <>
                   <div className="i-ph:check-circle-fill text-green-500 w-4 h-4" />
-                  <span className="text-xs text-green-500">Set via environment variable</span>
+                  <span className="text-xs text-green-500">Using Orbiter's API key</span>
                 </>
               ) : (
                 <>
                   <div className="i-ph:x-circle-fill text-red-500 w-4 h-4" />
-                  <span className="text-xs text-red-500">Not Set (Please enter your API key)</span>
+                  <span className="text-xs text-red-500">
+                    {session && session.user ? (
+                      'Not Set (Please enter your API key)'
+                    ) : (
+                      <span>
+                        <button
+                          onClick={() => setIsSettingsOpen(true)}
+                          className="underline bg-transparent hover:bg-none"
+                        >
+                          Log in
+                        </button>{' '}
+                        or enter your API key
+                      </span>
+                    )}
+                  </span>
                 </>
               )}
             </div>
@@ -197,6 +216,7 @@ export const APIKeyManager: React.FC<APIKeyManagerProps> = ({ provider, apiKey, 
           </>
         )}
       </div>
+      <ControlPanel open={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
     </div>
   );
 };

@@ -130,8 +130,8 @@ export async function checkUserTokenLimit(userId: string, limit = 100000): Promi
  */
 export function getUserTokenLimit(userId: string, subscriptionTier: string = 'free'): number {
   const LIMITS = {
-    launch: 1000, //1000000,
-    orbit: 1500, //2000000,
+    launch: 1000000,
+    orbit: 2000000,
   };
 
   return LIMITS[subscriptionTier as keyof typeof LIMITS];

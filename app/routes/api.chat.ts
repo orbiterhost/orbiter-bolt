@@ -94,20 +94,12 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
     const usageStatus = await checkUserTokenLimit(user?.id || '', TOKEN_LIMIT);
 
     if (usageStatus.isOverLimit) {
-      return new Response(
-        JSON.stringify({
-          error: 'Monthly token limit exceeded',
-          currentUsage: usageStatus.currentUsage,
-          limit: TOKEN_LIMIT,
-          upgradeUrl: 'https://app.orbiter.host/billing',
-        }),
-        {
-          status: 402, // Payment Required
-          headers: {
-            'Content-Type': 'application/json',
-          },
+      return new Response('Monthly token limit exceeded', {
+        status: 402, // Payment Required
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
+      });
     }
   }
 
