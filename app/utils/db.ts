@@ -1,5 +1,35 @@
 import { supabase } from '~/utils/auth';
 
+export const getUserSession = async (request: any) => {
+  try {
+    const token = request.headers.get('X-Orbiter-Key');
+
+    if (!token) {
+      return {
+        isAuthenticated: false,
+      };
+    }
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser(token);
+
+    if (user && user.id) {
+      return {
+        isAuthenticated: true,
+        user,
+      };
+    } else {
+      return {
+        isAuthenticated: false,
+      };
+    }
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
 export const getOrgMemebershipsForUser = async () => {
   const { data: memberships, error } = await supabase
     .from('members')

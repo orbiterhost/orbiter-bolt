@@ -26,6 +26,7 @@ import { getTemplates, selectStarterTemplate } from '~/utils/selectStarterTempla
 import { logStore } from '~/lib/stores/logs';
 import { streamingState } from '~/lib/stores/streaming';
 import { filesToArtifacts } from '~/utils/fileUtils';
+import { getAccessToken } from '~/utils/auth';
 
 const toastAnimation = cssTransition({
   enter: 'animated fadeInRight',
@@ -134,6 +135,22 @@ export const ChatImpl = memo(
       return (PROVIDER_LIST.find((p) => p.name === savedProvider) || DEFAULT_PROVIDER) as ProviderInfo;
     });
 
+    const [accessToken, setAccessToken] = useState<string | null>(null);
+
+    // Fetch the access token when the component mounts
+    useEffect(() => {
+      const fetchAccessToken = async () => {
+        try {
+          const token = await getAccessToken();
+          setAccessToken(token || '');
+        } catch (error) {
+          logger.error('Failed to get access token', error);
+        }
+      };
+
+      fetchAccessToken();
+    }, []);
+
     const { showChat } = useStore(chatStore);
 
     const [animationScope, animate] = useAnimate();
@@ -160,6 +177,9 @@ export const ChatImpl = memo(
         files,
         promptId,
         contextOptimization: contextOptimizationEnabled,
+      },
+      headers: {
+        ...(accessToken ? { 'X-Orbiter-Key': accessToken } : {}),
       },
       sendExtraMessageFields: true,
       onError: (e) => {
