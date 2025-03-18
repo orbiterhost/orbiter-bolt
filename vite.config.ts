@@ -98,6 +98,14 @@ export default defineConfig((config) => {
         output: {
           format: 'esm',
         },
+        treeshake: {
+          moduleSideEffects: (id, external) => {
+            // Force side effects for specific problematic modules
+            const modulesToForceSideEffects = ['react-chartjs-2', 'chart.js', 'isomorphic-git'];
+
+            return modulesToForceSideEffects.some((module) => id.includes(module));
+          },
+        },
       },
       commonjsOptions: {
         transformMixedEsModules: true,
