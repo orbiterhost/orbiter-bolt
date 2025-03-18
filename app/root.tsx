@@ -59,6 +59,38 @@ export const Head = createHead(() => (
   <>
     <meta charSet="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Voyager (by Orbiter)</title>
+    <meta
+      name="description"
+      content="Voyager is an Orbiter-flavored fork of Bolt, the AI coding app. Deploy your creations easily on Orbiter."
+    />
+
+    {/* Open Graph / Facebook */}
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://voyager.orbiter.host/" />
+    <meta property="og:title" content="Voyager (by Orbiter)" />
+    <meta
+      property="og:description"
+      content="Voyager is an Orbiter-flavored fork of Bolt, the AI coding app. Deploy your creations easily on Orbiter."
+    />
+    <meta
+      property="og:image"
+      content="https://cdn.orbiter.host/ipfs/bafkreihtmqihmvqendy4tev55kbrvzinvexl7zyzjb2gx4aevalpszy6n4"
+    />
+
+    {/* Twitter */}
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://voyager.orbiter.host/" />
+    <meta property="twitter:title" content="Voyager (by Orbiter)" />
+    <meta
+      property="twitter:description"
+      content="Voyager is an Orbiter-flavored fork of Bolt, the AI coding app. Deploy your creations easily on Orbiter."
+    />
+    <meta
+      property="twitter:image"
+      content="https://cdn.orbiter.host/ipfs/bafkreihtmqihmvqendy4tev55kbrvzinvexl7zyzjb2gx4aevalpszy6n4"
+    />
+
     <Meta />
     <Links />
     <script dangerouslySetInnerHTML={{ __html: inlineThemeCode }} />
