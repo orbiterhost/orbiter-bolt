@@ -1,6 +1,6 @@
 {
-  "name": "bolt",
-  "description": "An AI Agent",
+  "name": "Voyager",
+  "description": "An AI Coding Agent for Orbiter",
   "private": true,
   "license": "MIT",
   "sideEffects": false,
