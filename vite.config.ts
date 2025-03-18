@@ -112,6 +112,7 @@ export default defineConfig((config) => {
       },
     },
     optimizeDeps: {
+      exclude: ['istextorbinary'],
       esbuildOptions: {
         define: {
           global: 'globalThis',
