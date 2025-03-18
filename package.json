@@ -8,7 +8,7 @@
   "version": "0.0.7",
   "scripts": {
     "deploy": "npm run build && wrangler pages deploy",
-    "build": "NODE_OPTIONS=--max-old-space-size=4096 NODE_OPTIONS=--experimental-top-level-await remix vite:build",
+    "build": "remix vite:build",
     "dev": "node pre-start.cjs  && remix vite:dev",
     "test": "vitest --run",
     "test:watch": "vitest",
@@ -25,8 +25,7 @@
     "typegen": "wrangler types",
     "preview": "pnpm run build && pnpm run start",
     "prepare": "husky",
-    "clean": "node scripts/clean.js",
-    "postinstall": "patch-package"
+    "clean": "node scripts/clean.js"
   },
   "engines": {
     "node": ">=18.18.0"
