@@ -12,9 +12,6 @@ import type { ActionCallbackData } from '~/lib/runtime/message-parser';
 import { chatId } from '~/lib/persistence/useChatHistory'; // Add this import
 import { streamingState } from '~/lib/stores/streaming';
 import { NetlifyDeploymentLink } from '~/components/chat/NetlifyDeploymentLink.client';
-import { getAccessToken, supabase } from '~/utils/auth';
-import type { Session } from '@supabase/supabase-js';
-import { uploadSite } from '~/utils/pinata';
 
 interface HeaderActionButtonsProps {}
 
@@ -30,22 +27,7 @@ export function HeaderActionButtons({}: HeaderActionButtonsProps) {
   const canHideChat = showWorkbench || !showChat;
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [userSession, setSession] = useState<Session | null>(null);
   const isStreaming = useStore(streamingState);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -61,8 +43,8 @@ export function HeaderActionButtons({}: HeaderActionButtonsProps) {
   const currentChatId = useStore(chatId);
 
   const handleDeploy = async () => {
-    if (!userSession) {
-      toast.error('Please connect to Orbiter first in the settings tab!');
+    if (!connection.user || !connection.token) {
+      toast.error('Please connect to Netlify first in the settings tab!');
       return;
     }
 
@@ -74,23 +56,15 @@ export function HeaderActionButtons({}: HeaderActionButtonsProps) {
     try {
       setIsDeploying(true);
 
-      const accessToken = await getAccessToken();
-
-      if (!currentChatId) {
-        toast.error('No active chat found');
-        return;
-      }
-
       const artifact = workbenchStore.firstArtifact;
 
       if (!artifact) {
         throw new Error('No active project found');
       }
 
-      // Build the project first
       const actionId = 'build-' + Date.now();
       const actionData: ActionCallbackData = {
-        messageId: 'pinata build',
+        messageId: 'netlify build',
         artifactId: artifact.id,
         actionId,
         action: {
@@ -115,110 +89,104 @@ export function HeaderActionButtons({}: HeaderActionButtonsProps) {
       // Remove /home/project from buildPath if it exists
       const buildPath = artifact.runner.buildOutput.path.replace('/home/project', '');
 
-      // Get all files recursively as binary data
-      async function getAllFiles(dirPath: string): Promise<Map<string, File>> {
-        const files = new Map<string, File>();
+      // Get all files recursively
+      async function getAllFiles(dirPath: string): Promise<Record<string, string>> {
+        const files: Record<string, string> = {};
         const entries = await container.fs.readdir(dirPath, { withFileTypes: true });
 
         for (const entry of entries) {
           const fullPath = path.join(dirPath, entry.name);
 
           if (entry.isFile()) {
-            // Read as binary
-            const contentBuffer = await container.fs.readFile(fullPath);
-
-            // Convert to blob and then to File
-            const blob = new Blob([contentBuffer]);
+            const content = await container.fs.readFile(fullPath, 'utf-8');
 
             // Remove /dist prefix from the path
-            const deployPath = fullPath.replace(buildPath, '').replace(/^\//, '');
-
-            // Create a File object from the blob
-            const file = new File([blob], deployPath, {
-              type: getContentType(deployPath),
-            });
-
-            files.set(deployPath, file);
+            const deployPath = fullPath.replace(buildPath, '');
+            files[deployPath] = content;
           } else if (entry.isDirectory()) {
             const subFiles = await getAllFiles(fullPath);
-
-            // Merge the maps
-            subFiles.forEach((value, key) => {
-              files.set(key, value);
-            });
+            Object.assign(files, subFiles);
           }
         }
 
         return files;
       }
 
-      // Determine content type based on file extension
-      function getContentType(filePath: string): string {
-        const extension = filePath.split('.').pop()?.toLowerCase();
+      const fileContents = await getAllFiles(buildPath);
 
-        const mimeTypes: Record<string, string> = {
-          html: 'text/html',
-          css: 'text/css',
-          js: 'application/javascript',
-          json: 'application/json',
-          png: 'image/png',
-          jpg: 'image/jpeg',
-          jpeg: 'image/jpeg',
-          gif: 'image/gif',
-          svg: 'image/svg+xml',
-          ico: 'image/x-icon',
-          txt: 'text/plain',
-          md: 'text/markdown',
-        };
+      // Use chatId instead of artifact.id
+      const existingSiteId = localStorage.getItem(`netlify-site-${currentChatId}`);
 
-        return extension && mimeTypes[extension] ? mimeTypes[extension] : 'application/octet-stream';
-      }
-
-      const fileMap = await getAllFiles(buildPath);
-
-      // Create a meaningful project name
-      const subdomain = `orbiter-${currentChatId}-${Date.now()}`;
-
-      // Convert Map to array of Files for uploading
-      const fileArray = Array.from(fileMap.values());
-
-      if (fileArray.length === 0) {
-        throw new Error('No files found in build output');
-      }
-
-      // Upload directory to Pinata using fileArray
-      const cid = await uploadSite(fileArray);
-
-      // Store the IPFS hash for future reference
-      localStorage.setItem(`oribter-site-${currentChatId}`, cid);
-
-      const orgId = localStorage.getItem('orbiter-org-id');
-
-      const headers: any = {
-        'Content-Type': 'application/json',
-        'X-Orbiter-Token': accessToken,
-      };
-
-      const createSiteRequest = await fetch(`${import.meta.env.VITE_BASE_URL}/sites`, {
+      // Deploy using the API route with file contents
+      const response = await fetch('/api/deploy', {
         method: 'POST',
-        headers,
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
-          orgId,
-          cid,
-          subdomain,
+          siteId: existingSiteId || undefined,
+          files: fileContents,
+          token: connection.token,
+          chatId: currentChatId, // Use chatId instead of artifact.id
         }),
       });
 
-      if (!createSiteRequest.ok) {
-        const data: any = await createSiteRequest.json();
-        throw Error(data.message);
+      const data = (await response.json()) as any;
+
+      if (!response.ok || !data.deploy || !data.site) {
+        console.error('Invalid deploy response:', data);
+        throw new Error(data.error || 'Invalid deployment response');
+      }
+
+      // Poll for deployment status
+      const maxAttempts = 20; // 2 minutes timeout
+      let attempts = 0;
+      let deploymentStatus;
+
+      while (attempts < maxAttempts) {
+        try {
+          const statusResponse = await fetch(
+            `https://api.netlify.com/api/v1/sites/${data.site.id}/deploys/${data.deploy.id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${connection.token}`,
+              },
+            },
+          );
+
+          deploymentStatus = (await statusResponse.json()) as any;
+
+          if (deploymentStatus.state === 'ready' || deploymentStatus.state === 'uploaded') {
+            break;
+          }
+
+          if (deploymentStatus.state === 'error') {
+            throw new Error('Deployment failed: ' + (deploymentStatus.error_message || 'Unknown error'));
+          }
+
+          attempts++;
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        } catch (error) {
+          console.error('Status check error:', error);
+          attempts++;
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+        }
+      }
+
+      if (attempts >= maxAttempts) {
+        throw new Error('Deployment timed out');
+      }
+
+      // Store the site ID if it's a new site
+      if (data.site) {
+        localStorage.setItem(`netlify-site-${currentChatId}`, data.site.id);
       }
 
       toast.success(
         <div>
           Deployed successfully!{' '}
           <a
-            href={`https://${subdomain}.orbiter.website`}
+            href={deploymentStatus.ssl_url || deploymentStatus.url}
             target="_blank"
             rel="noopener noreferrer"
             className="underline"
@@ -270,8 +238,40 @@ export function HeaderActionButtons({}: HeaderActionButtonsProps) {
                 crossOrigin="anonymous"
                 src="https://cdn.simpleicons.org/netlify"
               />
-              <span className="mx-auto">{!userSession ? 'Orbiter account not connected' : 'Deploy to Orbiter'}</span>
-              {userSession && <NetlifyDeploymentLink />}
+              <span className="mx-auto">{!connection.user ? 'No Account Connected' : 'Deploy to Netlify'}</span>
+              {connection.user && <NetlifyDeploymentLink />}
+            </Button>
+            <Button
+              active={false}
+              disabled
+              className="flex items-center w-full rounded-md px-4 py-2 text-sm text-bolt-elements-textTertiary gap-2"
+            >
+              <span className="sr-only">Coming Soon</span>
+              <img
+                className="w-5 h-5 bg-black p-1 rounded"
+                height="24"
+                width="24"
+                crossOrigin="anonymous"
+                src="https://cdn.simpleicons.org/vercel/white"
+                alt="vercel"
+              />
+              <span className="mx-auto">Deploy to Vercel (Coming Soon)</span>
+            </Button>
+            <Button
+              active={false}
+              disabled
+              className="flex items-center w-full rounded-md px-4 py-2 text-sm text-bolt-elements-textTertiary gap-2"
+            >
+              <span className="sr-only">Coming Soon</span>
+              <img
+                className="w-5 h-5"
+                height="24"
+                width="24"
+                crossOrigin="anonymous"
+                src="https://cdn.simpleicons.org/cloudflare"
+                alt="vercel"
+              />
+              <span className="mx-auto">Deploy to Cloudflare (Coming Soon)</span>
             </Button>
           </div>
         )}

@@ -11,17 +11,6 @@ import type { ContextAnnotation, ProgressAnnotation } from '~/types/context';
 import { WORK_DIR } from '~/utils/constants';
 import { createSummary } from '~/lib/.server/llm/create-summary';
 import { extractPropertiesFromMessage } from '~/lib/.server/llm/utils';
-import { getUserSession } from '~/utils/db';
-import { isUserUsingOwnKey } from '~/lib/.server/api-key-utils';
-import { checkUserTokenLimit, getUserTokenLimit, updateUserTokenUsage } from '~/lib/.server/usage-tracking';
-
-type PlanDetails = {
-  planName: string;
-  currentPeriodStart: number;
-  currentPeriodEnd: number;
-  status: string;
-  nextPlan?: string | null;
-};
 
 export async function action(args: ActionFunctionArgs) {
   return chatAction(args);
@@ -55,54 +44,8 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
     contextOptimization: boolean;
   }>();
 
-  const { isAuthenticated, user } = await getUserSession(request);
-
-  if (!isAuthenticated) {
-    throw new Response('User not authenticated', {
-      status: 401,
-      statusText: 'Unauthorized',
-    });
-  }
-
-  const lastUserMessage = messages.filter((x) => x.role === 'user').slice(-1)[0];
-  const { provider } = extractPropertiesFromMessage(lastUserMessage);
-
   const cookieHeader = request.headers.get('Cookie');
   const apiKeys = JSON.parse(parseCookies(cookieHeader || '').apiKeys || '{}');
-
-  const isUsingOwnKey = isUserUsingOwnKey(apiKeys, provider, context.cloudflare?.env);
-
-  const token = request.headers.get('X-Orbiter-Key');
-
-  if (!isUsingOwnKey) {
-    // Check if user is over their token limit before processing
-    const headers: any = {
-      'Content-Type': 'application/json',
-      'X-Orbiter-Token': token,
-    };
-
-    const orgId = user?.user_metadata.orgId;
-    const plan = await fetch(`${process.env.VITE_BASE_URL}/billing/${orgId}/plan`, {
-      method: 'GET',
-      headers,
-    });
-
-    const details: any = await plan.json();
-    const planDetails: PlanDetails = details.data;
-
-    const TOKEN_LIMIT = getUserTokenLimit(user?.id || '', planDetails.planName);
-    const usageStatus = await checkUserTokenLimit(user?.id || '', TOKEN_LIMIT);
-
-    if (usageStatus.isOverLimit) {
-      return new Response('Monthly token limit exceeded', {
-        status: 402, // Payment Required
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-    }
-  }
-
   const providerSettings: Record<string, IProviderSetting> = JSON.parse(
     parseCookies(cookieHeader || '').providers || '{}',
   );
@@ -257,11 +200,6 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
                   totalTokens: cumulativeUsage.totalTokens,
                 },
               });
-
-              if (!isUsingOwnKey) {
-                await updateUserTokenUsage(user?.id || '', cumulativeUsage);
-              }
-
               dataStream.writeData({
                 type: 'progress',
                 label: 'response',
