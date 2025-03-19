@@ -1,5 +1,5 @@
 {
-  "name": "voyager",
+  "name": "bolt",
   "description": "An AI Agent",
   "private": true,
   "license": "MIT",
@@ -28,7 +28,7 @@
     "clean": "node scripts/clean.js"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=18.18.0"
   },
   "dependencies": {
     "@ai-sdk/amazon-bedrock": "1.0.6",
@@ -108,7 +108,7 @@
     "nanostores": "^0.10.3",
     "ollama-ai-provider": "^0.15.2",
     "path-browserify": "^1.0.1",
-    "pinata": "^2.0.1",
+    "pinata": "^2.1.0",
     "react": "^18.3.1",
     "react-beautiful-dnd": "^13.1.1",
     "react-chartjs-2": "^5.3.0",
