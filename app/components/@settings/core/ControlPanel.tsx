@@ -75,7 +75,7 @@ const TAB_DESCRIPTIONS: Record<TabType, string> = {
   'cloud-providers': 'Configure cloud AI providers and models',
   'local-providers': 'Configure local AI providers and models',
   'service-status': 'Monitor cloud LLM service status',
-  connection: 'Check connection status and settings',
+  connection: 'Log into Orbiter',
   debug: 'Debug tools and system information',
   'event-logs': 'View system events and logs',
   update: 'Check for updates and release notes',

@@ -26,6 +26,7 @@ import { getTemplates, selectStarterTemplate } from '~/utils/selectStarterTempla
 import { logStore } from '~/lib/stores/logs';
 import { streamingState } from '~/lib/stores/streaming';
 import { filesToArtifacts } from '~/utils/fileUtils';
+import { getAccessToken } from '~/utils/auth';
 
 const toastAnimation = cssTransition({
   enter: 'animated fadeInRight',
@@ -85,6 +86,16 @@ export function Chat() {
   );
 }
 
+const UpgradeMessage = () => (
+  <div>
+    <p>You have exceeded your token limit.</p>
+
+    <a className="underline" href="https://app.orbiter.host/billing">
+      Buy more token credits
+    </a>
+  </div>
+);
+
 const processSampledMessages = createSampler(
   (options: {
     messages: Message[];
@@ -134,6 +145,22 @@ export const ChatImpl = memo(
       return (PROVIDER_LIST.find((p) => p.name === savedProvider) || DEFAULT_PROVIDER) as ProviderInfo;
     });
 
+    const [accessToken, setAccessToken] = useState<string | null>(null);
+
+    // Fetch the access token when the component mounts
+    useEffect(() => {
+      const fetchAccessToken = async () => {
+        try {
+          const token = await getAccessToken();
+          setAccessToken(token || '');
+        } catch (error) {
+          logger.error('Failed to get access token', error);
+        }
+      };
+
+      fetchAccessToken();
+    }, []);
+
     const { showChat } = useStore(chatStore);
 
     const [animationScope, animate] = useAnimate();
@@ -161,6 +188,9 @@ export const ChatImpl = memo(
         promptId,
         contextOptimization: contextOptimizationEnabled,
       },
+      headers: {
+        ...(accessToken ? { 'X-Orbiter-Key': accessToken } : {}),
+      },
       sendExtraMessageFields: true,
       onError: (e) => {
         logger.error('Request failed\n\n', e, error);
@@ -169,9 +199,14 @@ export const ChatImpl = memo(
           action: 'request',
           error: e.message,
         });
-        toast.error(
-          'There was an error processing your request: ' + (e.message ? e.message : 'No details were returned'),
-        );
+
+        if (e.message === 'Monthly token limit exceeded') {
+          toast.error(<UpgradeMessage />);
+        } else {
+          toast.error(
+            'There was an error processing your request: ' + (e.message ? e.message : 'No details were returned'),
+          );
+        }
       },
       onFinish: (message, response) => {
         const usage = response.usage;
@@ -323,7 +358,16 @@ export const ChatImpl = memo(
                 {
                   id: `1-${new Date().getTime()}`,
                   role: 'user',
-                  content: messageContent,
+                  content: [
+                    {
+                      type: 'text',
+                      text: `[Model: ${model}]\n\n[Provider: ${provider.name}]\n\n${messageContent}`,
+                    },
+                    ...imageDataList.map((imageData) => ({
+                      type: 'image',
+                      image: imageData,
+                    })),
+                  ] as any,
                 },
                 {
                   id: `2-${new Date().getTime()}`,
@@ -338,6 +382,15 @@ export const ChatImpl = memo(
                 },
               ]);
               reload();
+              setInput('');
+              Cookies.remove(PROMPT_COOKIE_KEY);
+
+              setUploadedFiles([]);
+              setImageDataList([]);
+
+              resetEnhancer();
+
+              textareaRef.current?.blur();
               setFakeLoading(false);
 
               return;
@@ -364,6 +417,15 @@ export const ChatImpl = memo(
         ]);
         reload();
         setFakeLoading(false);
+        setInput('');
+        Cookies.remove(PROMPT_COOKIE_KEY);
+
+        setUploadedFiles([]);
+        setImageDataList([]);
+
+        resetEnhancer();
+
+        textareaRef.current?.blur();
 
         return;
       }

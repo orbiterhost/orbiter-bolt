@@ -31,6 +31,7 @@ dist-ssr
 *.vars
 .wrangler
 _worker.bundle
+/app/lib/.server/supabase.ts
 
 Modelfile
 modelfiles
@@ -44,3 +45,4 @@ changelogUI.md
 docs/instructions/Roadmap.md
 .cursorrules
 *.md
+wrangler.toml

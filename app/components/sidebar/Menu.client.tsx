@@ -2,7 +2,6 @@ import { motion, type Variants } from 'framer-motion';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { Dialog, DialogButton, DialogDescription, DialogRoot, DialogTitle } from '~/components/ui/Dialog';
-import { ThemeSwitch } from '~/components/ui/ThemeSwitch';
 import { ControlPanel } from '~/components/@settings/core/ControlPanel';
 import { SettingsButton } from '~/components/ui/SettingsButton';
 import { db, deleteById, getAll, chatId, type ChatHistoryItem, useChatHistory } from '~/lib/persistence';
@@ -12,8 +11,8 @@ import { HistoryItem } from './HistoryItem';
 import { binDates } from './date-binning';
 import { useSearchFilter } from '~/lib/hooks/useSearchFilter';
 import { classNames } from '~/utils/classNames';
-import { useStore } from '@nanostores/react';
-import { profileStore } from '~/lib/stores/profile';
+import type { Session } from '@supabase/supabase-js';
+import { getUserLocal } from '~/utils/auth';
 
 const menuVariants = {
   closed: {
@@ -67,7 +66,19 @@ export const Menu = () => {
   const [open, setOpen] = useState(false);
   const [dialogContent, setDialogContent] = useState<DialogContent>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const profile = useStore(profileStore);
+  const [user, setUser] = useState<Session | null>(null);
+
+  useEffect(() => {
+    const getSession = async () => {
+      const session: Session | null = await getUserLocal();
+
+      if (session) {
+        setUser(session);
+      }
+    };
+
+    getSession();
+  }, []);
 
   const { filteredItems: filteredList, handleSearchChange } = useSearchFilter({
     items: list,
@@ -176,13 +187,15 @@ export const Menu = () => {
           <div className="text-gray-900 dark:text-white font-medium"></div>
           <div className="flex items-center gap-3">
             <span className="font-medium text-sm text-gray-900 dark:text-white truncate">
-              {profile?.username || 'Guest User'}
+              {user?.user?.email?.slice(0, 2).toUpperCase() || (
+                <button onClick={() => setIsSettingsOpen(true)}>Sign In</button>
+              )}
             </span>
             <div className="flex items-center justify-center w-[32px] h-[32px] overflow-hidden bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-500 rounded-full shrink-0">
-              {profile?.avatar ? (
+              {user?.user.user_metadata.avatar_url ? (
                 <img
-                  src={profile.avatar}
-                  alt={profile?.username || 'User'}
+                  src={user?.user.user_metadata.avatar_url}
+                  alt={user?.user?.email?.slice(0, 2) || 'User'}
                   className="w-full h-full object-cover"
                   loading="eager"
                   decoding="sync"
@@ -278,7 +291,6 @@ export const Menu = () => {
           </div>
           <div className="flex items-center justify-between border-t border-gray-200 dark:border-gray-800 px-4 py-3">
             <SettingsButton onClick={handleSettingsClick} />
-            <ThemeSwitch />
           </div>
         </div>
       </motion.div>
