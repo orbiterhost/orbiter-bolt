@@ -1,9 +1,9 @@
 import { motion } from 'framer-motion';
 import React, { Suspense } from 'react';
-import OrbiterConnection from './OrbiterConnection';
 
 // Use React.lazy for dynamic imports
 const GithubConnection = React.lazy(() => import('./GithubConnection'));
+const NetlifyConnection = React.lazy(() => import('./NetlifyConnection'));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -36,11 +36,8 @@ export default function ConnectionsTab() {
         <Suspense fallback={<LoadingFallback />}>
           <GithubConnection />
         </Suspense>
-        {/* <Suspense fallback={<LoadingFallback />}>
-          <NetlifyConnection />
-        </Suspense> */}
         <Suspense fallback={<LoadingFallback />}>
-          <OrbiterConnection />
+          <NetlifyConnection />
         </Suspense>
       </div>
     </div>

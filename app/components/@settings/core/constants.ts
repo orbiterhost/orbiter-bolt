@@ -9,7 +9,7 @@ export const TAB_ICONS: Record<TabType, string> = {
   'cloud-providers': 'i-ph:cloud-fill',
   'local-providers': 'i-ph:desktop-fill',
   'service-status': 'i-ph:activity-bold',
-  connection: 'i-ph:lock',
+  connection: 'i-ph:wifi-high-fill',
   debug: 'i-ph:bug-fill',
   'event-logs': 'i-ph:list-bullets-fill',
   update: 'i-ph:arrow-clockwise-fill',
@@ -26,7 +26,7 @@ export const TAB_LABELS: Record<TabType, string> = {
   'cloud-providers': 'Cloud Providers',
   'local-providers': 'Local Providers',
   'service-status': 'Service Status',
-  connection: 'Auth',
+  connection: 'Connection',
   debug: 'Debug',
   'event-logs': 'Event Logs',
   update: 'Updates',
@@ -43,7 +43,7 @@ export const TAB_DESCRIPTIONS: Record<TabType, string> = {
   'cloud-providers': 'Configure cloud AI providers and models',
   'local-providers': 'Configure local AI providers and models',
   'service-status': 'Monitor cloud LLM service status',
-  connection: 'Log into Orbiter',
+  connection: 'Check connection status and settings',
   debug: 'Debug tools and system information',
   'event-logs': 'View system events and logs',
   update: 'Check for updates and release notes',
@@ -53,11 +53,11 @@ export const TAB_DESCRIPTIONS: Record<TabType, string> = {
 
 export const DEFAULT_TAB_CONFIG = [
   // User Window Tabs (Always visible by default)
-  { id: 'features', visible: false, window: 'user' as const, order: 0 },
-  { id: 'data', visible: true, window: 'user' as const, order: 4 },
+  { id: 'features', visible: true, window: 'user' as const, order: 0 },
+  { id: 'data', visible: true, window: 'user' as const, order: 1 },
   { id: 'cloud-providers', visible: true, window: 'user' as const, order: 2 },
   { id: 'local-providers', visible: true, window: 'user' as const, order: 3 },
-  { id: 'connection', visible: true, window: 'user' as const, order: 1 },
+  { id: 'connection', visible: true, window: 'user' as const, order: 4 },
   { id: 'notifications', visible: true, window: 'user' as const, order: 5 },
   { id: 'event-logs', visible: true, window: 'user' as const, order: 6 },
 
