@@ -1,5 +1,6 @@
 import { PinataSDK } from 'pinata';
 import { supabase } from '~/utils/auth';
+import { GROUP_ID } from './config';
 
 export const pinata = new PinataSDK({
   pinataJwt: '',
@@ -18,7 +19,7 @@ export const getKey = async () => {
     'X-Orbiter-Token': sessionData.session?.access_token,
   };
 
-  const result = await fetch(`${import.meta.env.VITE_BASE_URL}/keys/upload_key`, {
+  const result = await fetch(`${process.env.VITE_BASE_URL}/keys/upload_key`, {
     method: 'POST',
     headers,
     body: JSON.stringify({}),
@@ -44,7 +45,7 @@ export const uploadSite = async (files: any) => {
       upload = await pinata.upload.public
         .fileArray(files)
         .key(JWT)
-        .group(import.meta.env.VITE_GROUP_ID)
+        .group(GROUP_ID!)
         .keyvalues({
           userId: user?.id || '',
         });
@@ -52,7 +53,7 @@ export const uploadSite = async (files: any) => {
       upload = await pinata.upload.public
         .file(files)
         .key(JWT)
-        .group(import.meta.env.VITE_GROUP_ID)
+        .group(GROUP_ID!)
         .keyvalues({
           userId: user?.id || '',
         });

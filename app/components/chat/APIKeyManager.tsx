@@ -4,6 +4,7 @@ import type { ProviderInfo } from '~/types/model';
 import Cookies from 'js-cookie';
 import { getAccessToken, getUserLocal } from '~/utils/auth';
 import type { Session } from '@supabase/supabase-js';
+import { Link } from '@remix-run/react';
 
 // import { ControlPanel } from '~/components/@settings';
 
@@ -49,7 +50,6 @@ export const APIKeyManager: React.FC<APIKeyManagerProps> = ({ provider, apiKey, 
   const [tempKey, setTempKey] = useState(apiKey);
   const [isEnvKeySet, setIsEnvKeySet] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Reset states and load saved key when provider changes
   useEffect(() => {
@@ -61,8 +61,6 @@ export const APIKeyManager: React.FC<APIKeyManagerProps> = ({ provider, apiKey, 
     setApiKey(savedKey);
     setIsEditing(false);
   }, [provider.name]);
-
-  console.log(isSettingsOpen);
 
   const checkEnvApiKey = useCallback(async () => {
     // Check cache first
@@ -151,12 +149,9 @@ export const APIKeyManager: React.FC<APIKeyManagerProps> = ({ provider, apiKey, 
                       'Not Set (Please enter your API key)'
                     ) : (
                       <span>
-                        <button
-                          onClick={() => setIsSettingsOpen(true)}
-                          className="underline bg-transparent hover:bg-none"
-                        >
+                        <Link to="?sign-in=true" className="underline bg-transparent hover:bg-none">
                           Log in
-                        </button>{' '}
+                        </Link>{' '}
                         or enter your API key
                       </span>
                     )}
