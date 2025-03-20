@@ -192,7 +192,7 @@ export function HeaderActionButtons({}: HeaderActionButtonsProps) {
       // Store the IPFS hash for future reference
       localStorage.setItem(`oribter-site-${currentChatId}`, cid);
 
-      const orgId = localStorage.getItem('orbiter-org-id');
+      const orgId = userSession.user.user_metadata.orgId;
 
       const headers: any = {
         'Content-Type': 'application/json',
