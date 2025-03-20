@@ -321,7 +321,10 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                   VOYAGER
                 </h1>
                 <p className="text-md lg:text-xl mb-8 text-bolt-elements-textSecondary animate-fade-in animation-delay-200">
-                  Launch new apps on <a target='_blank' className='underline' href="https://orbiter.host">Orbiter</a>
+                  Launch new apps on{' '}
+                  <a target="_blank" className="underline" href="https://orbiter.host">
+                    Orbiter
+                  </a>
                 </p>
               </div>
             )}
