@@ -198,6 +198,14 @@ export class LLMManager {
   }
 
   getDefaultProvider(): BaseProvider {
+    // Try to find Anthropic provider first
+    for (const provider of this._providers.values()) {
+      if (provider.name.toLowerCase() === 'anthropic') {
+        return provider;
+      }
+    }
+
+    // Fall back to the first provider if Anthropic is not available
     const firstProvider = this._providers.values().next().value;
 
     if (!firstProvider) {
