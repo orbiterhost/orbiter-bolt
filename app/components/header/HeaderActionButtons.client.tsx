@@ -263,13 +263,7 @@ export function HeaderActionButtons({}: HeaderActionButtonsProps) {
               disabled={isDeploying || !activePreview || !connection.user}
               className="flex items-center w-full px-4 py-2 text-sm text-bolt-elements-textPrimary hover:bg-bolt-elements-item-backgroundActive gap-2 rounded-md group relative"
             >
-              <img
-                className="w-5 h-5"
-                height="24"
-                width="24"
-                crossOrigin="anonymous"
-                src="https://cdn.simpleicons.org/netlify"
-              />
+              <img src="/orbiter.svg" className="h-4" />
               <span className="mx-auto">{!userSession ? 'Orbiter account not connected' : 'Deploy to Orbiter'}</span>
               {userSession && <NetlifyDeploymentLink />}
             </Button>
