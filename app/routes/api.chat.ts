@@ -14,6 +14,7 @@ import { extractPropertiesFromMessage } from '~/lib/.server/llm/utils';
 import { getUserSession } from '~/lib/.server/db';
 import { isUserUsingOwnKey } from '~/lib/.server/api-key-utils';
 import { checkUserTokenLimit, getUserTokenLimit, updateUserTokenUsage } from '~/lib/.server/usage-tracking';
+import { ORBITER_API_URL } from '~/utils/config';
 
 type PlanDetails = {
   planName: string;
@@ -82,7 +83,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
     };
 
     const orgId = user?.user_metadata.orgId;
-    const plan = await fetch(`${process.env.VITE_BASE_URL}/billing/${orgId}/plan`, {
+    const plan = await fetch(`${ORBITER_API_URL}/billing/${orgId}/plan`, {
       method: 'GET',
       headers,
     });

@@ -1,4 +1,5 @@
 import { supabase } from '~/utils/auth';
+import { ORBITER_API_URL } from './config';
 
 export const getUserSession = async (request: any) => {
   try {
@@ -69,7 +70,7 @@ export const createOrganizationAndMembership = async () => {
     'X-Orbiter-Token': sessionData.session?.access_token,
   };
 
-  await fetch(`${import.meta.env.VITE_BASE_URL}/organizations`, {
+  await fetch(`${ORBITER_API_URL}/organizations`, {
     method: 'POST',
     headers,
     body: JSON.stringify({

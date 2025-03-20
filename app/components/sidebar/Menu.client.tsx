@@ -13,6 +13,7 @@ import { useSearchFilter } from '~/lib/hooks/useSearchFilter';
 import { classNames } from '~/utils/classNames';
 import type { Session } from '@supabase/supabase-js';
 import { getUserLocal } from '~/utils/auth';
+import { useSearchParams, useLocation, useNavigate } from '@remix-run/react';
 
 const menuVariants = {
   closed: {
@@ -68,6 +69,10 @@ export const Menu = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [user, setUser] = useState<Session | null>(null);
 
+  const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+
   useEffect(() => {
     const getSession = async () => {
       const session: Session | null = await getUserLocal();
@@ -79,6 +84,21 @@ export const Menu = () => {
 
     getSession();
   }, []);
+
+  useEffect(() => {
+    const signInParam = searchParams.get('sign-in');
+
+    if (signInParam === 'true') {
+      setIsSettingsOpen(true);
+
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.delete('sign-in');
+
+      navigate(`${location.pathname}${newSearchParams.toString() ? `?${newSearchParams.toString()}` : ''}`, {
+        replace: true, // This replaces the current history entry instead of adding a new one
+      });
+    }
+  }, [location, searchParams]);
 
   const { filteredItems: filteredList, handleSearchChange } = useSearchFilter({
     items: list,
