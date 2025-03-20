@@ -1,6 +1,6 @@
 import { PinataSDK } from 'pinata';
 import { supabase } from '~/utils/auth';
-import { GROUP_ID } from './config';
+import { GROUP_ID, ORBITER_API_URL } from './config';
 
 export const pinata = new PinataSDK({
   pinataJwt: '',
@@ -19,7 +19,7 @@ export const getKey = async () => {
     'X-Orbiter-Token': sessionData.session?.access_token,
   };
 
-  const result = await fetch(`${process.env.VITE_BASE_URL}/keys/upload_key`, {
+  const result = await fetch(`${ORBITER_API_URL}/keys/upload_key`, {
     method: 'POST',
     headers,
     body: JSON.stringify({}),

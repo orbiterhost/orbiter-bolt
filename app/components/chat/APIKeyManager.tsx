@@ -5,6 +5,7 @@ import Cookies from 'js-cookie';
 import { getAccessToken, getUserLocal } from '~/utils/auth';
 import type { Session } from '@supabase/supabase-js';
 import { Link } from '@remix-run/react';
+import { ORBITER_API_URL } from '~/utils/config';
 
 // import { ControlPanel } from '~/components/@settings';
 
@@ -86,7 +87,7 @@ export const APIKeyManager: React.FC<APIKeyManagerProps> = ({ provider, apiKey, 
         'X-Orbiter-Token': accessToken,
       };
 
-      const res = await fetch(`${import.meta.env.VITE_BASE_URL}/billing/${orgId}/plan`, {
+      const res = await fetch(`${ORBITER_API_URL}/billing/${orgId}/plan`, {
         method: 'GET',
         headers,
       });

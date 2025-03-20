@@ -2,26 +2,25 @@ import { useStore } from '@nanostores/react';
 import { toast } from 'react-toastify';
 import useViewport from '~/lib/hooks';
 import { chatStore } from '~/lib/stores/chat';
-import { netlifyConnection } from '~/lib/stores/netlify';
 import { workbenchStore } from '~/lib/stores/workbench';
 import { webcontainer } from '~/lib/webcontainer';
 import { classNames } from '~/utils/classNames';
 import { path } from '~/utils/path';
 import { useEffect, useRef, useState } from 'react';
 import type { ActionCallbackData } from '~/lib/runtime/message-parser';
-import { chatId } from '~/lib/persistence/useChatHistory'; // Add this import
+import { chatId } from '~/lib/persistence/useChatHistory';
 import { streamingState } from '~/lib/stores/streaming';
 import { NetlifyDeploymentLink } from '~/components/chat/NetlifyDeploymentLink.client';
 import { getAccessToken, supabase } from '~/utils/auth';
 import type { Session } from '@supabase/supabase-js';
 import { uploadSite } from '~/utils/pinata';
+import { ORBITER_API_URL } from '~/utils/config';
 
 interface HeaderActionButtonsProps {}
 
 export function HeaderActionButtons({}: HeaderActionButtonsProps) {
   const showWorkbench = useStore(workbenchStore.showWorkbench);
   const { showChat } = useStore(chatStore);
-  const connection = useStore(netlifyConnection);
   const [activePreviewIndex] = useState(0);
   const previews = useStore(workbenchStore.previews);
   const activePreview = previews[activePreviewIndex];
@@ -199,7 +198,7 @@ export function HeaderActionButtons({}: HeaderActionButtonsProps) {
         'X-Orbiter-Token': accessToken,
       };
 
-      const createSiteRequest = await fetch(`${import.meta.env.VITE_BASE_URL}/sites`, {
+      const createSiteRequest = await fetch(`${ORBITER_API_URL}/sites`, {
         method: 'POST',
         headers,
         body: JSON.stringify({
@@ -260,7 +259,7 @@ export function HeaderActionButtons({}: HeaderActionButtonsProps) {
                 handleDeploy();
                 setIsDropdownOpen(false);
               }}
-              disabled={isDeploying || !activePreview || !connection.user}
+              disabled={isDeploying || !activePreview || !userSession}
               className="flex items-center w-full px-4 py-2 text-sm text-bolt-elements-textPrimary hover:bg-bolt-elements-item-backgroundActive gap-2 rounded-md group relative"
             >
               <img src="/orbiter.svg" className="h-4" />

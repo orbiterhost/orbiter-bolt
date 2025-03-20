@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import type { Session } from '@supabase/supabase-js';
 import { classNames } from '~/utils/classNames';
 import { createOrganizationAndMembership, getOrgMemebershipsForUser } from '~/utils/db';
+import { ORBITER_API_URL } from '~/utils/config';
 
 type Site = {
   id: string;
@@ -163,7 +164,7 @@ export default function OrbiterConnection({ className, ...props }: React.Compone
         'X-Orbiter-Token': sessionData.session?.access_token,
       };
 
-      const result = await fetch(`${import.meta.env.VITE_BASE_URL}/sites`, {
+      const result = await fetch(`${ORBITER_API_URL}/sites`, {
         method: 'GET',
         headers,
       });
