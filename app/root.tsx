@@ -81,7 +81,7 @@ export const Head = createHead(() => (
 
     <meta
       property="og:image"
-      content="https://cdn.orbiter.host/ipfs/bafkreihtmqihmvqendy4tev55kbrvzinvexl7zyzjb2gx4aevalpszy6n4"
+      content="https://cdn.orbiter.host/ipfs/bafkreigrdc3m2yv56glpwe5abzf73c2ue7i75p7ftzkwfi2nbtsggc7wae"
     />
 
     {/* Twitter */}
@@ -99,7 +99,7 @@ export const Head = createHead(() => (
 
     <meta
       property="twitter:image"
-      content="https://cdn.orbiter.host/ipfs/bafkreihtmqihmvqendy4tev55kbrvzinvexl7zyzjb2gx4aevalpszy6n4"
+      content="https://cdn.orbiter.host/ipfs/bafkreigrdc3m2yv56glpwe5abzf73c2ue7i75p7ftzkwfi2nbtsggc7wae"
     />
     <Meta />
     <Links />
